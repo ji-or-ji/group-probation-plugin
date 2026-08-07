@@ -251,7 +251,7 @@ class GroupProbationPlugin(MaiBotPlugin):
                     )
                     self._probation_remove(group_id, user_id)
                     continue
-                data = result.get("data") if isinstance(result, dict) else None
+                data = result if isinstance(result, dict) else None
                 if not isinstance(data, dict):
                     self._probation_remove(group_id, user_id)
                     continue
@@ -294,8 +294,7 @@ class GroupProbationPlugin(MaiBotPlugin):
             try:
                 await self.ctx.api.call(
                     "adapter.napcat.group.send_group_msg",
-                    group_id=int(group_id),
-                    message=[{"type": "text", "data": {"text": text}}],
+                    params={"group_id": int(group_id), "message": [{"type": "text", "data": {"text": text}}]},
                 )
             except Exception as exc:
                 self.ctx.logger.info("[考察期] 移出说明发送失败: %s", exc)
@@ -375,7 +374,7 @@ class GroupProbationPlugin(MaiBotPlugin):
                 group_id=int(group_id),
                 user_id=int(user_id),
             )
-            data = result.get("data") if isinstance(result, dict) else None
+            data = result if isinstance(result, dict) else None
             if isinstance(data, dict):
                 card = str(data.get("card") or "").strip()
                 if card:
@@ -392,11 +391,9 @@ class GroupProbationPlugin(MaiBotPlugin):
         try:
             await self.ctx.api.call(
                 "adapter.napcat.group.send_group_msg",
-                group_id=int(group_id),
-                message=[
-                    {"type": "at", "data": {"qq": user_id}},
+                params={"group_id": int(group_id), "message": [{"type": "at", "data": {"qq": user_id}},
                     {"type": "text", "data": {"text": text}},
-                ],
+                ]},
             )
             return True
         except Exception as exc:
