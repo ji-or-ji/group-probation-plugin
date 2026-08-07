@@ -432,3 +432,8 @@ class GroupProbationPlugin(MaiBotPlugin):
                     self._probation = data
         except Exception as exc:
             self.ctx.logger.info("[考察期] 加载失败: %s", exc)
+
+
+def create_plugin() -> GroupProbationPlugin:
+    """MaiBot 插件工厂函数。"""
+    return GroupProbationPlugin()
