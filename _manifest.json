@@ -1,0 +1,40 @@
+{
+  "manifest_version": 2,
+  "version": "0.1.0",
+  "name": "麦麦喊新人说话！",
+  "description": "加群考察期：新人入群自动 @ 欢迎邀请发言，超过考察时长（默认 48 小时）未发言的新成员自动移出群聊。移出是确定性代码行为（定时检查 + 条件判断），不注册任何 LLM 工具，机器人不会自主决定移出谁；需要 bot 拥有群管理员权限。与「麦麦看到你了！」联动：该插件启用时本插件自动禁用，避免重复执行。",
+  "author": {
+    "name": "ji-or-ji",
+    "url": "https://github.com/jiruiyu330784"
+  },
+  "license": "MIT",
+  "urls": {
+    "repository": "https://github.com/jiruiyu330784/group-probation-plugin",
+    "homepage": "https://github.com/jiruiyu330784/group-probation-plugin",
+    "documentation": "https://github.com/jiruiyu330784/group-probation-plugin/blob/main/README.md",
+    "issues": "https://github.com/jiruiyu330784/group-probation-plugin/issues"
+  },
+  "host_application": {
+    "min_version": "1.0.0",
+    "max_version": "1.99.99"
+  },
+  "sdk": {
+    "min_version": "2.0.0",
+    "max_version": "2.99.99"
+  },
+  "dependencies": [],
+  "plugin_type": "extension",
+  "capabilities": [
+    "api.call",
+    "llm.generate",
+    "config.get"
+  ],
+  "i18n": {
+    "default_locale": "zh-CN",
+    "locales_path": "_locales",
+    "supported_locales": [
+      "zh-CN"
+    ]
+  },
+  "id": "group-probation-plugin"
+}
