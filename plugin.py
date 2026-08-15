@@ -96,22 +96,34 @@ class GroupProbationPlugin(MaiBotPlugin):
     # ===== 联动检测 =====
 
     def _sibling_awareness_enabled(self) -> bool:
-        """检测「麦麦看到你了！」是否已启用（读它的 config.toml）。"""
-        try:
-            # __file__ = plugins/<本插件>/plugin.py → parents[1] = plugins/ 根目录
-            sibling_cfg = (
-                Path(__file__).resolve().parents[1]
-                / SIBLING_AWARENESS_PLUGIN_ID
-                / "config.toml"
-            )
-            if not sibling_cfg.exists():
-                return False
-            with open(sibling_cfg, "rb") as f:
-                data = tomllib.load(f)
-            return bool(data.get("plugin", {}).get("enabled", False))
-        except Exception as exc:
-            self.ctx.logger.debug("[考察期] 联动检测异常: %s", exc)
-            return False
+        """检测「麦麦看到你了！」是否已启用。
+
+        候选路径（按优先级）：
+        1. 配置项 plugin.sibling_awareness_config（显式指定完整路径）
+        2. 插件目录同级的 group-awareness-plugin/config.toml
+        3. 插件目录同级的 group-awareness-plugin/config.example.toml
+        全部不存在或解析失败返回 False（不压制本插件），静默降级。
+        """
+        candidates: list[Path] = []
+        configured = str(
+            getattr(self.config.plugin, "sibling_awareness_config", "") or ""
+        ).strip()
+        if configured:
+            candidates.append(Path(configured))
+        plugins_dir = Path(__file__).resolve().parents[1]
+        candidates.append(plugins_dir / SIBLING_AWARENESS_PLUGIN_ID / "config.toml")
+        candidates.append(plugins_dir / SIBLING_AWARENESS_PLUGIN_ID / "config.example.toml")
+        for path in candidates:
+            try:
+                if not path.is_file():
+                    continue
+                with open(path, "rb") as f:
+                    data = tomllib.load(f)
+                return bool(data.get("plugin", {}).get("enabled", False))
+            except Exception as exc:
+                self.ctx.logger.debug("[考察期] 读取群感知配置失败 (%s): %s", path, exc)
+                continue
+        return False
 
     # ===== 事件处理 Hook =====
 

@@ -21,6 +21,8 @@
 
 > 注意：若两个都装，`probation.enabled` 开关请在**本插件**（麦麦喊新人说话！）的 config 里修改，群感知会自动读取。
 
+> **联动依赖说明**：本插件通过读取「麦麦看到你了！」插件的 `config.toml` 判断对方是否启用。默认在插件目录同级查找 `group-awareness-plugin/`，也可用 `plugin.sibling_awareness_config` 指定完整路径。若对方插件目录改名或路径变化，本插件会静默降级为不压制（双方可能同时运行，需手动关一个）。
+
 ## 配置
 
 ```toml

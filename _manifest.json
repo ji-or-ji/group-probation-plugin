@@ -29,11 +29,7 @@
     "config.get"
   ],
   "i18n": {
-    "default_locale": "zh-CN",
-    "locales_path": "_locales",
-    "supported_locales": [
-      "zh-CN"
-    ]
+    "default_locale": "zh-CN"
   },
   "id": "group-probation-plugin"
 }

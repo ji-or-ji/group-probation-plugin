@@ -30,6 +30,14 @@ class PluginSectionConfig(PluginConfigBase):
         description="配置版本",
         json_schema_extra={"label": "配置版本", "disabled": True},
     )
+    sibling_awareness_config: str = Field(
+        default="",
+        description=(
+            "「麦麦看到你了！」插件的 config.toml 完整路径（可选）。"
+            "留空自动在插件目录同级查找 group-awareness-plugin/ 下的配置"
+        ),
+        json_schema_extra={"label": "群感知联动配置路径", "hint": "留空自动探测兄弟插件目录"},
+    )
 
 
 class GreetConfig(PluginConfigBase):

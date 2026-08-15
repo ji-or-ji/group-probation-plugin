@@ -1,6 +1,8 @@
 [plugin]
 enabled = true
 config_version = "1.0.0"
+# 「麦麦看到你了！」插件的 config.toml 完整路径（可选）；留空自动在插件目录同级查找
+# sibling_awareness_config = ""
 
 [probation]
 enabled = false
