@@ -5,7 +5,10 @@ config_version = "1.0.0"
 # sibling_awareness_config = ""
 
 [probation]
-enabled = false
+enabled = true
+# 启用考察期的群号白名单（群号，字符串）。仅列出的群会登记/考察/移出新人。
+# 空数组 = 不作用于任何群（全局停用，安全默认）。必填，否则考察期不生效。
+enabled_groups = []
 probation_hours = 48
 check_interval_minutes = 30
 reject_add_request = false

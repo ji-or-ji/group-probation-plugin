@@ -5,6 +5,8 @@
 移出后发送说明消息（含被移出者 QQ 号）。
 
 安全边界：
+- 移出仅对 probation.enabled_groups 中显式列出的群生效；列表为空时不登记、
+  不考察、不移出任何成员（默认安全）
 - 移出是确定性代码（定时检查 + 条件判断），不注册任何 LLM 工具，
   机器人不会自主决定移出谁
 - 需要 bot 拥有群管理员权限（仅用于 set_group_kick）
@@ -63,6 +65,11 @@ class GroupProbationPlugin(MaiBotPlugin):
 
         self._probation_load()
         if self.config.probation.enabled:
+            if not self.config.probation.enabled_groups:
+                self.ctx.logger.warning(
+                    "[考察期] 考察期已启用但 enabled_groups 为空：不作用于任何群，"
+                    "不会登记/移出成员。请在配置中填入目标群号。",
+                )
             self._probation_task = asyncio.create_task(
                 self._probation_loop(), name="group-probation.probation",
             )
@@ -125,6 +132,12 @@ class GroupProbationPlugin(MaiBotPlugin):
                 continue
         return False
 
+    # ===== 作用域校验 =====
+
+    def _group_enabled(self, group_id: str) -> bool:
+        """群号是否在启用考察期的群列表中（空列表视为不作用于任何群）。"""
+        return str(group_id) in {str(g) for g in self.config.probation.enabled_groups}
+
     # ===== 事件处理 Hook =====
 
     @HookHandler(
@@ -145,10 +158,15 @@ class GroupProbationPlugin(MaiBotPlugin):
         if ctx is None:
             return None
 
-        # 进群：加入考察名单 + @ 欢迎
+        # 进群：仅对启用的群登记 + @ 欢迎（未列出的群一律不考察）
         if ctx["event"] == EVT_INCREASE and self.config.probation.enabled:
+            if not self._group_enabled(ctx["group_id"]):
+                self.ctx.logger.debug(
+                    "[考察期] 群 %s 不在 enabled_groups，跳过考察登记", ctx["group_id"],
+                )
+                return {"action": "abort"}
             await self._handle_probation_join(ctx)
-        # 退群：清理考察名单（人已不在群，无需保留）
+        # 退群：清理考察名单（人已不在群，无需保留；群校验无关紧要，清理无害）
         elif ctx["event"] == EVT_DECREASE:
             self._probation_remove(ctx["group_id"], ctx.get("user_id") or "")
             self._probation_persist()
@@ -196,7 +214,7 @@ class GroupProbationPlugin(MaiBotPlugin):
     # ===== 考察期逻辑 =====
 
     async def _handle_probation_join(self, ctx: dict[str, Any]) -> None:
-        """新人进群：加入考察名单并发送 @ 欢迎。"""
+        """新人进群：加入考察名单并发送 @ 欢迎（调用方已校验群作用域）。"""
         user_id = ctx["user_id"]
         cfg = self.config.probation
 
@@ -235,7 +253,11 @@ class GroupProbationPlugin(MaiBotPlugin):
                 self.ctx.logger.info("[考察期] 检查异常: %s", exc, exc_info=True)
 
     async def _check_probation(self) -> None:
-        """遍历考察名单：转正（已发言）、排除（管理员/白名单/已退群）、移出（超时未发言）。"""
+        """遍历考察名单：转正（已发言）、排除（管理员/白名单/已退群）、移出（超时未发言）。
+
+        只处理 enabled_groups 中的群；不在列表中的群即使有残留记录也跳过，
+        不会对它们执行任何移出操作。
+        """
         cfg = self.config.probation
         if not cfg.enabled:
             return
@@ -244,6 +266,12 @@ class GroupProbationPlugin(MaiBotPlugin):
         probation_seconds = float(cfg.probation_hours) * 3600
 
         for group_id, members in list(self._probation.items()):
+            # 群作用域：未列入 enabled_groups 的群一律跳过（不踢人）
+            if not self._group_enabled(group_id):
+                self.ctx.logger.debug(
+                    "[考察期] 群 %s 不在 enabled_groups，跳过本轮检查", group_id,
+                )
+                continue
             for user_id, entry in list(members.items()):
                 # 白名单跳过
                 if user_id in whitelist:

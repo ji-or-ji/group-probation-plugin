@@ -144,6 +144,9 @@ class ProbationConfig(PluginConfigBase):
 
     移出是确定性代码行为（定时检查 + 条件判断），不注册任何 LLM 工具，
     机器人不会自主决定移出谁。需要 bot 拥有群管理员权限才能执行移出。
+
+    作用域边界：仅对 enabled_groups 中列出的群生效；列表为空时不执行任何
+    考察/移出（也不会登记新成员）。kick 属于高影响操作，必须显式列群。
     """
 
     __ui_label__ = "考察期"
@@ -157,6 +160,17 @@ class ProbationConfig(PluginConfigBase):
             "LLM 不参与决策）"
         ),
         json_schema_extra={"label": "启用考察期", "hint": "需 bot 有群管理员权限"},
+    )
+    enabled_groups: list[str] = Field(
+        default_factory=list,
+        description=(
+            "启用考察期的群号白名单（群号，字符串）。空数组表示不作用于任何群，"
+            "不执行考察也不会移出任何成员。仅列表中的群会登记/考察/移出新人。"
+        ),
+        json_schema_extra={
+            "label": "启用群列表",
+            "hint": "必填：考察期仅对列出的群号生效，空数组则全局停用",
+        },
     )
     probation_hours: float = Field(
         default=48.0,
