@@ -11,6 +11,14 @@ enabled = true
 enabled_groups = []
 probation_hours = 48
 check_interval_minutes = 30
+# ===== 考察标准增强 =====
+# 转正消息数阈值：进群后累计发言达到该条数即转正（不再仅看是否发过言）。
+# 0 = 不启用，保持原行为（发过言即转正）。
+min_messages = 0
+# 到期仍未转正时用 LLM 判号：判定异常才移出，其余保守保留（避免误踢真人）。
+llm_judge = false
+# 判号提示词（可自定义，留空用内置默认）。占位符：{member_name} {user_id} {hours} {message_count} {min_messages} {progress}
+llm_judge_prompt = ""
 reject_add_request = false
 whitelist = []
 
